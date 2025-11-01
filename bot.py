@@ -35,11 +35,11 @@ SERVER_ID = int(os.environ.get("SERVER_ID", "0"))     # ID du serveur
 # 2) (FACULTATIF) – Config “à distance” depuis Render via JSON :
 #    Dans Render → Environment, ajoute KEYWORDS_JSON avec une valeur:
 #    {"mot1": 111111111111111111, "mot2": 222222222222222222, ...}
-KEYWORDS_JSON_RAW = os.environ.get("KEYWORDS_JSON", "").strip()
+#KEYWORDS_JSON_RAW = os.environ.get("KEYWORDS_JSON", "").strip()
 
 # 3) (FACULTATIF) – Fallback simple si tu préfères garder un seul mot:
 #    si tu ne mets pas KEYWORDS_JSON, mais que tu veux "test" -> rôle X:
-ROLE_ID_TEST = int(os.environ.get("ROLE_ID_TEST", "0"))
+#ROLE_ID_TEST = int(os.environ.get("ROLE_ID_TEST", "0"))
 
 # ================================================================
 #        ZONE À MODIFIER LIBREMENT : MOTS → RÔLES (MANUEL)
@@ -85,22 +85,22 @@ def normalize(text: str) -> str:
 KEYWORDS_MAP: dict[str, int] = {}
 
 # A) JSON depuis Render (si fourni)
-if KEYWORDS_JSON_RAW:
-    try:
-        parsed = json.loads(KEYWORDS_JSON_RAW)
-        for k, v in parsed.items():
-            key = normalize(str(k))
-            KEYWORDS_MAP[key] = int(v)
-    except Exception as e:
-        logger.error(f"KEYWORDS_JSON invalide (JSON) : {e}")
+#if KEYWORDS_JSON_RAW:
+#    try:
+#        parsed = json.loads(KEYWORDS_JSON_RAW)
+#        for k, v in parsed.items():
+#            key = normalize(str(k))
+#            KEYWORDS_MAP[key] = int(v)
+#    except Exception as e:
+#        logger.error(f"KEYWORDS_JSON invalide (JSON) : {e}")
 
 # B) Section MANUELLE (prioritaire : écrase le JSON si même clé)
 for key, role_id in MANUAL_KEYWORDS:
     KEYWORDS_MAP[normalize(key)] = int(role_id)
 
 # C) Fallback simple si rien d’autre n’est défini et que ROLE_ID_TEST existe
-if not KEYWORDS_MAP and ROLE_ID_TEST:
-    KEYWORDS_MAP["test"] = ROLE_ID_TEST
+#if not KEYWORDS_MAP and ROLE_ID_TEST:
+#    KEYWORDS_MAP["test"] = ROLE_ID_TEST
 
 
 # ================================================================
