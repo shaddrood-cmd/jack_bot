@@ -53,7 +53,7 @@ ROLE_ID_TEST = int(os.environ.get("ROLE_ID_TEST", "0"))
 #   ("camelot", 333333333333333333),
 
 MANUAL_KEYWORDS: list[tuple[str, int]] = [
-    # ("test", 111111111111111111),   # exemple
+    ("test", 1433953119435231302),
     # ("avalon", 222222222222222222),
     # ("camelot", 333333333333333333),
 ]
