@@ -32,25 +32,9 @@ except Exception:
 TOKEN = os.environ.get("DISCORD_TOKEN")               # Token du bot
 SERVER_ID = int(os.environ.get("SERVER_ID", "0"))     # ID du serveur
 
-# 2) (FACULTATIF) – Config “à distance” depuis Render via JSON :
-#    Dans Render → Environment, ajoute KEYWORDS_JSON avec une valeur:
-#    {"mot1": 111111111111111111, "mot2": 222222222222222222, ...}
-#KEYWORDS_JSON_RAW = os.environ.get("KEYWORDS_JSON", "").strip()
-
-# 3) (FACULTATIF) – Fallback simple si tu préfères garder un seul mot:
-#    si tu ne mets pas KEYWORDS_JSON, mais que tu veux "test" -> rôle X:
-#ROLE_ID_TEST = int(os.environ.get("ROLE_ID_TEST", "0"))
-
 # ================================================================
 #        ZONE À MODIFIER LIBREMENT : MOTS → RÔLES (MANUEL)
 # ---------------------------------------------------------------
-# Ajoute autant de lignes que tu veux ci-dessous.
-# Format: ("mot-à-envoyer-en-MP", ID_DU_ROLE_ENTIER)
-# - Le mot est insensible à la casse et aux espaces multiples ("  TeSt  " = "test")
-# - L’ID de rôle doit être un INT (clic droit → Copier l’ID dans Discord)
-# - Exemple:
-#   ("avalon", 222222222222222222),
-#   ("camelot", 333333333333333333),
 
 MANUAL_KEYWORDS: list[tuple[str, int]] = [
     ("test", 1433953119435231302), #rôle 1
@@ -78,8 +62,6 @@ MANUAL_KEYWORDS: list[tuple[str, int]] = [
     # ("camelot", 333333333333333333), #rôle 3
     # ("camelot", 333333333333333333), #rôle 3
 ]
-# ================================================================
-
 
 # ================================================================
 #                         LOGGING PROPRE
@@ -105,24 +87,10 @@ def normalize(text: str) -> str:
 
 KEYWORDS_MAP: dict[str, int] = {}
 
-# A) JSON depuis Render (si fourni)
-#if KEYWORDS_JSON_RAW:
-#    try:
-#        parsed = json.loads(KEYWORDS_JSON_RAW)
-#        for k, v in parsed.items():
-#            key = normalize(str(k))
-#            KEYWORDS_MAP[key] = int(v)
-#    except Exception as e:
-#        logger.error(f"KEYWORDS_JSON invalide (JSON) : {e}")
 
-# B) Section MANUELLE (prioritaire : écrase le JSON si même clé)
+# Section MANUELLE (prioritaire : écrase le JSON si même clé)
 for key, role_id in MANUAL_KEYWORDS:
     KEYWORDS_MAP[normalize(key)] = int(role_id)
-
-# C) Fallback simple si rien d’autre n’est défini et que ROLE_ID_TEST existe
-#if not KEYWORDS_MAP and ROLE_ID_TEST:
-#    KEYWORDS_MAP["test"] = ROLE_ID_TEST
-
 
 # ================================================================
 #                      VALIDATION CONFIG CRITIQUE
@@ -204,7 +172,6 @@ async def on_message(message: discord.Message):
 
     # Laisser passer d’éventuelles commandes (!help, etc.)
     await bot.process_commands(message)
-
 
 # ================================================================
 #                           DÉMARRAGE
