@@ -31,7 +31,7 @@ SERVER_ID = int(os.environ.get("SERVER_ID", "0"))
 # Format : "numéro": ("réponse", ID_DU_ROLE)
 # ================================================================
 ENIGMES = {
-    "1": (""suis la lumiere" or "suis la lumière"), 1442871050487468142),
+    "1": (("suis la lumiere" or "suis la lumière"), 1442871050487468142),
     "2": ("centrolenidae", 1442871095178035353),
     "3": ("tradition", 1442871100299280385),
     "4": ("passé", 1442871103574900826),
