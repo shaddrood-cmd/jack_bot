@@ -8,6 +8,7 @@ from logging.handlers import RotatingFileHandler
 import discord
 from discord.ext import commands
 from keep_alive import start_web
+from unidecode import unidecode
 
 # Démarre le mini serveur pour Render
 start_web()
@@ -84,10 +85,20 @@ current_enigme = {}
 # ================================================================
 #  OUTILS
 # ================================================================
-def normalize(txt: str) -> str:
-    """Met en minuscule et supprime les espaces superflus."""
-    return " ".join((txt or "").lower().strip().split())
-
+#def normalize(txt: str) -> str:
+#    """Met en minuscule et supprime les espaces superflus."""
+#    return " ".join((txt or "").lower().strip().split())
+def normalize(text: str) -> str:
+    """
+    Normalise le texte :
+    - convertit en minuscules
+    - enlève les accents (é → e, è → e, etc.)
+    - supprime les espaces en trop
+    """
+    if not text:
+        return ""
+    t = unidecode(text).lower().strip()
+    return " ".join(t.split())
 # ================================================================
 #  ÉVÈNEMENTS DU BOT
 # ================================================================
