@@ -31,7 +31,7 @@ SERVER_ID = int(os.environ.get("SERVER_ID", "0"))
 # Format : "numéro": ("réponse", ID_DU_ROLE)
 # ================================================================
 ENIGMES = {
-    "1": ("suis la lumiere", 1442871050487468142),
+    "1": (""suis la lumiere" or "suis la lumière"), 1442871050487468142),
     "2": ("centrolenidae", 1442871095178035353),
     "3": ("tradition", 1442871100299280385),
     "4": ("passé", 1442871103574900826),
@@ -152,12 +152,12 @@ async def on_message(message: discord.Message):
         return
 
     if role in member.roles:
-        await message.channel.send(f"ℹ️ Tu as déjà le rôle **{role.name}**.")
+        await message.channel.send(f"ℹ️ Tu as déjà réussi l'énigme **{role.name}**.")
         return
 
     try:
         await member.add_roles(role, reason=f"Bonne réponse à l’énigme {enigme_en_cours}")
-        await message.channel.send(f"✅ Bravo {member.display_name} ! Tu gagnes le rôle **{role.name}** 🎉")
+        await message.channel.send(f"✅ Bravo {member.display_name} ! Tu as réussi l'énigme **{role.name}** !")
         logger.info(f"{member} a résolu l’énigme {enigme_en_cours}")
         del current_enigme[message.author.id]
     except discord.Forbidden:
@@ -169,3 +169,7 @@ async def on_message(message: discord.Message):
 #  DÉMARRAGE
 # ================================================================
 bot.run(TOKEN, log_handler=None)
+
+
+##  await message.channel.send(f"✅ Bravo {member.display_name} ! Tu gagnes le rôle **{role.name} 🎉")
+## await message.channel.send(f"ℹ️ Tu as déjà le rôle **{role.name}**.") 
