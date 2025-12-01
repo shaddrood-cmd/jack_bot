@@ -194,7 +194,7 @@ async def on_message(message: discord.Message):
                 try:
                     await log_channel.send(
                         f"🧩 {member.mention} a réussi l'énigme {enigme_en_cours} "
-                        f"et a reçu le rôle **{role.name}**."
+                       # f"et a reçu le rôle **{role.name}**."
                     )
                 except discord.Forbidden:
                     logger.warning(
