@@ -25,6 +25,8 @@ except Exception:
 # ================================================================
 TOKEN = os.environ.get("DISCORD_TOKEN")
 SERVER_ID = int(os.environ.get("SERVER_ID", "0"))
+LOG_CHANNEL_ID = int(os.environ.get("LOG_CHANNEL_ID", "0"))  # Salon où le bot annonce les réussites
+
 
 # ================================================================
 #  TABLE DES 24 ÉNIGMES
@@ -166,15 +168,47 @@ async def on_message(message: discord.Message):
         await message.channel.send(f"ℹ️ Tu as déjà réussi l'énigme **{role.name}**.")
         return
 
-    try:
-        await member.add_roles(role, reason=f"Bonne réponse à l’énigme {enigme_en_cours}")
-        await message.channel.send(f"✅ Bravo {member.display_name} ! Tu as réussi l'énigme **{role.name}** !")
-        logger.info(f"{member} a résolu l’énigme {enigme_en_cours}")
-        del current_enigme[message.author.id]
-    except discord.Forbidden:
-        await message.channel.send("⚠️ Permission insuffisante pour attribuer le rôle.")
-    except discord.HTTPException:
-        await message.channel.send("⚠️ Erreur Discord. Réessaie plus tard.")
+    #try:
+    #    await member.add_roles(role, reason=f"Bonne réponse à l’énigme {enigme_en_cours}")
+    #    await message.channel.send(f"✅ Bravo {member.display_name} ! Tu as réussi l'énigme **{role.name}** !")
+    #    logger.info(f"{member} a résolu l’énigme {enigme_en_cours}")
+    #    del current_enigme[message.author.id]
+    #except discord.Forbidden:
+    #    await message.channel.send("⚠️ Permission insuffisante pour attribuer le rôle.")
+    #except discord.HTTPException:
+    #    await message.channel.send("⚠️ Erreur Discord. Réessaie plus tard.")
+try:
+    # 1) Ajout du rôle
+    await member.add_roles(role, reason=f"Bonne réponse à l’énigme {enigme_en_cours}")
+
+    # 2) Réponse au joueur EN MP (comme avant)
+    await message.channel.send(
+        f"✅ Bravo {member.display_name} ! Tu as réussi l'énigme **{role.name}** !"
+    )
+    logger.info(f"{member} a résolu l’énigme {enigme_en_cours}")
+
+    # 3) Log dans le canal dédié (en plus)
+    if LOG_CHANNEL_ID:
+        log_channel = guild.get_channel(LOG_CHANNEL_ID)
+        if log_channel is not None:
+            try:
+                await log_channel.send(
+                    f"🧩 {member.mention} a réussi l’énigme {enigme_en_cours} "
+                    f"et a reçu le rôle **{role.name}**."
+                )
+            except discord.Forbidden:
+                logger.warning("Impossible d’envoyer le message dans le salon de log (permissions).")
+            except discord.HTTPException as e:
+                logger.warning(f\"Erreur HTTP lors de l’envoi dans le salon de log: {e}\")
+
+    # 4) On nettoie l'état (comme avant)
+    del current_enigme[message.author.id]
+
+except discord.Forbidden:
+    await message.channel.send("⚠️ Permission insuffisante pour attribuer le rôle.")
+except discord.HTTPException:
+    await message.channel.send("⚠️ Erreur Discord. Réessaie plus tard.")
+
 
 # ================================================================
 #  DÉMARRAGE
