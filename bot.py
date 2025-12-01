@@ -5,8 +5,10 @@
 import os
 import logging
 from logging.handlers import RotatingFileHandler
+
 import discord
 from discord.ext import commands
+
 from keep_alive import start_web
 from unidecode import unidecode
 
@@ -66,10 +68,12 @@ os.makedirs("logs", exist_ok=True)
 logger = logging.getLogger("bot")
 logger.setLevel(logging.INFO)
 fmt = logging.Formatter("[%(asctime)s] %(levelname)s: %(message)s")
-ch = logging.StreamHandler(); ch.setFormatter(fmt)
+ch = logging.StreamHandler()
+ch.setFormatter(fmt)
 fh = RotatingFileHandler("logs/bot.log", maxBytes=2_000_000, backupCount=3, encoding="utf-8")
 fh.setFormatter(fmt)
-logger.addHandler(ch); logger.addHandler(fh)
+logger.addHandler(ch)
+logger.addHandler(fh)
 
 # ================================================================
 #  DISCORD CONFIG
@@ -81,14 +85,11 @@ intents.dm_messages = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # Dictionnaire temporaire {user_id: numéro_énigme}
-current_enigme = {}
+current_enigme: dict[int, str] = {}
 
 # ================================================================
 #  OUTILS
 # ================================================================
-#def normalize(txt: str) -> str:
-#    """Met en minuscule et supprime les espaces superflus."""
-#    return " ".join((txt or "").lower().strip().split())
 def normalize(text: str) -> str:
     """
     Normalise le texte :
@@ -100,6 +101,7 @@ def normalize(text: str) -> str:
         return ""
     t = unidecode(text).lower().strip()
     return " ".join(t.split())
+
 # ================================================================
 #  ÉVÈNEMENTS DU BOT
 # ================================================================
@@ -107,6 +109,7 @@ def normalize(text: str) -> str:
 async def on_ready():
     logger.info(f"{bot.user} connecté et opérationnel ✅")
     logger.info(f"Énigmes actives : {', '.join(sorted(ENIGMES.keys()))}")
+
 
 @bot.event
 async def on_message(message: discord.Message):
@@ -144,13 +147,17 @@ async def on_message(message: discord.Message):
             return
 
         current_enigme[message.author.id] = enigme_num
-        await message.channel.send(f"🔍 Tu veux répondre à l’énigme **{enigme_num}**. Envoie ta réponse maintenant.")
+        await message.channel.send(
+            f"🔍 Tu veux répondre à l’énigme **{enigme_num}**. Envoie ta réponse maintenant."
+        )
         return
 
     # Étape 2 : réponse
     enigme_en_cours = current_enigme.get(message.author.id)
     if not enigme_en_cours:
-        await message.channel.send("❗ Dis d’abord quelle énigme tu veux tenter : `!enigme <numéro>`")
+        await message.channel.send(
+            "❗ Dis d’abord quelle énigme tu veux tenter : `!enigme <numéro>`"
+        )
         return
 
     bonne_reponse, role_id = ENIGMES[enigme_en_cours]
@@ -167,54 +174,49 @@ async def on_message(message: discord.Message):
         await message.channel.send(f"ℹ️ Tu as déjà réussi l'énigme **{role.name}**.")
         return
 
-    #try:
-    #    await member.add_roles(role, reason=f"Bonne réponse à l’énigme {enigme_en_cours}")
-    #    await message.channel.send(f"✅ Bravo {member.display_name} ! Tu as réussi l'énigme **{role.name}** !")
-    #    logger.info(f"{member} a résolu l’énigme {enigme_en_cours}")
-    #    del current_enigme[message.author.id]
-    #except discord.Forbidden:
-    #    await message.channel.send("⚠️ Permission insuffisante pour attribuer le rôle.")
-    #except discord.HTTPException:
-    #    await message.channel.send("⚠️ Erreur Discord. Réessaie plus tard.")
+    # ------------------------------------------------------------
+    # Ajout du rôle + message joueur + log dans le canal dédié
+    # ------------------------------------------------------------
+    try:
+        # 1) Ajout du rôle
+        await member.add_roles(role, reason=f"Bonne réponse à l'énigme {enigme_en_cours}")
 
-try:
-    # 1) Ajout du rôle
-    await member.add_roles(role, reason=f"Bonne réponse à l'énigme {enigme_en_cours}")
+        # 2) Réponse au joueur (DM)
+        await message.channel.send(
+            f"✅ Bravo {member.display_name} ! Tu as réussi l'énigme **{role.name}** !"
+        )
+        logger.info(f"{member} a résolu l'énigme {enigme_en_cours}")
 
-    # 2) Réponse au joueur (DM)
-    await message.channel.send(
-        f"✅ Bravo {member.display_name} ! Tu as réussi l'énigme **{role.name}** !"
-    )
-    logger.info(f"{member} a résolu l'énigme {enigme_en_cours}")
+        # 3) Log dans le canal dédié
+        if LOG_CHANNEL_ID:
+            log_channel = guild.get_channel(LOG_CHANNEL_ID)
+            if log_channel is not None:
+                try:
+                    await log_channel.send(
+                        f"🧩 {member.mention} a réussi l'énigme {enigme_en_cours} "
+                        f"et a reçu le rôle **{role.name}**."
+                    )
+                except discord.Forbidden:
+                    logger.warning(
+                        "Impossible d'envoyer le message dans le salon de log (permissions)."
+                    )
+                except discord.HTTPException as e:
+                    logger.warning(f"Erreur HTTP lors de l'envoi dans le salon de log: {e}")
 
-    # 3) Log dans le canal dédié
-    if LOG_CHANNEL_ID:
-        log_channel = guild.get_channel(LOG_CHANNEL_ID)
-        if log_channel is not None:
-            try:
-                await log_channel.send(
-                    f"🧩 {member.mention} a réussi l'énigme {enigme_en_cours} "
-                    f"et a reçu le rôle **{role.name}**."
-                )
-            except discord.Forbidden:
-                logger.warning("Impossible d'envoyer le message dans le salon de log (permissions).")
-            except discord.HTTPException as e:
-                logger.warning(f"Erreur HTTP lors de l'envoi dans le salon de log: {e}")
+        # 4) On nettoie l'état
+        if message.author.id in current_enigme:
+            del current_enigme[message.author.id]
 
-    # 4) On nettoie l'état
-    del current_enigme[message.author.id]
+    except discord.Forbidden:
+        await message.channel.send("⚠️ Permission insuffisante pour attribuer le rôle.")
+    except discord.HTTPException:
+        await message.channel.send("⚠️ Erreur Discord. Réessaie plus tard.")
 
-except discord.Forbidden:
-    await message.channel.send("⚠️ Permission insuffisante pour attribuer le rôle.")
-except discord.HTTPException:
-    await message.channel.send("⚠️ Erreur Discord. Réessaie plus tard.")
+    # Laisse passer d’éventuelles autres commandes
+    await bot.process_commands(message)
 
 
 # ================================================================
 #  DÉMARRAGE
 # ================================================================
 bot.run(TOKEN, log_handler=None)
-
-
-##  await message.channel.send(f"✅ Bravo {member.display_name} ! Tu gagnes le rôle **{role.name} 🎉")
-## await message.channel.send(f"ℹ️ Tu as déjà le rôle **{role.name}**.") 
