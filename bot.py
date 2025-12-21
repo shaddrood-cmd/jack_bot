@@ -177,17 +177,20 @@ async def on_message(message: discord.Message):
     # ------------------------------------------------------------
     # Ajout du rôle + message joueur + log dans le canal dédié
     # ------------------------------------------------------------
-                try:
-                    await log_channel.send(
-                        f"🧩 {member.mention} a réussi l'énigme {enigme_en_cours} "
-                        f"et a reçu le rôle **{role.name}**."
-                    )
-                except discord.Forbidden:
-                    logger.warning(
-                        "Impossible d'envoyer le message dans le salon de log (permissions)."
-                    )
-                except discord.HTTPException as e:
-                    logger.warning(f"Erreur HTTP lors de l'envoi dans le salon de log: {e}")
+      # 3) Log dans le canal dédié
+if LOG_CHANNEL_ID:
+    log_channel = guild.get_channel(LOG_CHANNEL_ID)
+    if log_channel is not None:
+        try:
+            await log_channel.send(
+                f"🧩 {member.mention} a réussi l'énigme {enigme_en_cours} "
+                f"et a reçu le rôle **{role.name}**."
+            )
+        except discord.Forbidden:
+            logger.warning("Impossible d'envoyer le message dans le salon de log (permissions).")
+        except discord.HTTPException as e:
+            logger.warning(f"Erreur HTTP lors de l'envoi dans le salon de log: {e}")
+
 
         # 4) On nettoie l'état
         if message.author.id in current_enigme:
