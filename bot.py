@@ -191,7 +191,7 @@ async def on_message(message: discord.Message):
           #      f"✅ Bravo {member.display_name} ! Rôle **{role.name}** attribué."
            # )
 
-       # logger.info(f"{member} a résolu l’énigme {enigme_en_cours}")
+        logger.info(f"{member} a résolu l’énigme {enigme_en_cours}")
 
         # Log serveur
         if LOG_CHANNEL_ID:
