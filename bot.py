@@ -184,14 +184,14 @@ async def on_message(message: discord.Message):
         await member.add_roles(role, reason=f"Énigme {enigme_en_cours}")
 
         # Message spécial énigme 20
-        if enigme_en_cours == "20":
-            await message.channel.send("🎵 Écoute bien. Tout n’est pas terminé.")
-        else:
-            await message.channel.send(
-                f"✅ Bravo {member.display_name} ! Rôle **{role.name}** attribué."
-            )
+      #  if enigme_en_cours == "20":
+       #     await message.channel.send("🎵 Écoute bien. Tout n’est pas terminé.")
+        #else:
+         #   await message.channel.send(
+          #      f"✅ Bravo {member.display_name} ! Rôle **{role.name}** attribué."
+           # )
 
-        logger.info(f"{member} a résolu l’énigme {enigme_en_cours}")
+       # logger.info(f"{member} a résolu l’énigme {enigme_en_cours}")
 
         # Log serveur
         if LOG_CHANNEL_ID:
