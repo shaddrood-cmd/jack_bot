@@ -65,7 +65,7 @@ ENIGMES = {
 }
 
 # ================================================================
-# LOGS
+# LOGGING
 # ================================================================
 os.makedirs("logs", exist_ok=True)
 logger = logging.getLogger("bot")
@@ -183,17 +183,13 @@ async def on_message(message: discord.Message):
     try:
         await member.add_roles(role, reason=f"Énigme {enigme_en_cours}")
 
-        # Message spécial énigme 20
-      #  if enigme_en_cours == "20":
-       #     await message.channel.send("🎵 Écoute bien. Tout n’est pas terminé.")
-        #else:
-         #   await message.channel.send(
-          #      f"✅ Bravo {member.display_name} ! Rôle **{role.name}** attribué."
-           # )
+        await message.channel.send(
+            f"✅ Bravo {member.display_name} ! Rôle **{role.name}** attribué."
+        )
 
         logger.info(f"{member} a résolu l’énigme {enigme_en_cours}")
 
-        # Log serveur
+        # Log serveur (optionnel)
         if LOG_CHANNEL_ID:
             log_channel = guild.get_channel(LOG_CHANNEL_ID)
             if log_channel:
